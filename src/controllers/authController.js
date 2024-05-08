@@ -1,9 +1,22 @@
-const asyncHandle = require("express-async-handler");
-const UserModel = require("../models/userModels");
+/** @format */
+
+
 const bcryp = require('bcrypt');
+const asyncHandle = require('express-async-handler');
 const jwt = require('jsonwebtoken');
+const nodemailer = require("nodemailer");
+const UserModel = require('../models/userModels');
 require('dotenv').config();
 
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587, // Use `true` for port 465, `false` for all other ports
+    secure: false,
+    auth: {
+        user: process.env.USERNAME_EMAIL,
+        pass: process.env.PASSWORD_EMAIL,
+    },
+});
 
 const getJsonWebToken = async (email, id) => {
     const payload = {
@@ -17,8 +30,46 @@ const getJsonWebToken = async (email, id) => {
     return token;
 };
 
+const handleSendMail = async (val) => {
+    try {
+        await transporter.sendMail(val);
+
+        return 'OK';
+    } catch (error) {
+        return error;
+    }
+};
+
+const verification = asyncHandle(async (req, res) => {
+    const { email } = req.body;
+
+    const verificationCode = Math.round(1000 + Math.random() * 9000);
+
+    try {
+        const data = {
+            from: `"Support EventHub Appplication" <${process.env.USERNAME_EMAIL}>`,
+            to: email,
+            subject: 'Verification email code',
+            text: 'Your code to verification email',
+            html: `<h1>${verificationCode}</h1>`,
+        };
+
+        await handleSendMail(data);
+
+        res.status(200).json({
+            message: 'Send verification code successfully!!!',
+            data: {
+                code: verificationCode,
+            },
+        });
+    } catch (error) {
+        res.status(401);
+        throw new Error('Can not send email');
+    }
+});
+
 const register = asyncHandle(async (req, res) => {
-    const { email, fullName, password } = req.body;
+    const { email, fullname, password } = req.body;
 
     const existingUser = await UserModel.findOne({ email });
 
@@ -32,7 +83,7 @@ const register = asyncHandle(async (req, res) => {
 
     const newUser = new UserModel({
         email,
-        fullName: fullName ?? '',
+        fullname: fullname ?? '',
         password: hashedPassword,
     });
 
@@ -49,14 +100,13 @@ const register = asyncHandle(async (req, res) => {
 });
 
 const login = asyncHandle(async (req, res) => {
-
     const { email, password } = req.body;
 
     const existingUser = await UserModel.findOne({ email });
 
     if (!existingUser) {
         res.status(403);
-        throw new Error('User not found !!!');
+        throw new Error('User not found!!!');
     }
 
     const isMatchPassword = await bcryp.compare(password, existingUser.password);
@@ -76,7 +126,13 @@ const login = asyncHandle(async (req, res) => {
     });
 });
 
+
+
+
+
 module.exports = {
     register,
-    login
-}
+    login,
+    verification,
+
+};
