@@ -47,16 +47,16 @@ const EventSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
-    date: {
-        type: Number,
-        required: true,
-    },
     price: {
         type: String,
         required: true,
     },
     category: {
         type: String,
+        required: true,
+    },
+    date: {
+        type: Number,
         required: true,
     },
     createdAt: {
@@ -66,6 +66,9 @@ const EventSchema = new mongoose.Schema({
     updatedAt: {
         type: Date,
         default: Date.now(),
+    },
+    followers: {
+        type: [String],
     },
 });
 
