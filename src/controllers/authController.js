@@ -4,7 +4,7 @@ const bcryp = require("bcrypt");
 const asyncHandle = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
-const UserModel = require("../models/userModels");
+const UserModel = require("../models/userModel");
 require("dotenv").config();
 
 const transporter = nodemailer.createTransport({
