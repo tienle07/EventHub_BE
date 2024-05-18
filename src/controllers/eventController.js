@@ -44,29 +44,39 @@ const addNewEvent = asyncHandle(async (req, res) => {
 });
 
 const getEvents = asyncHandle(async (req, res) => {
-    const { lat, long, distance } = req.query;
+    const { lat, long, distance, limit } = req.query;
 
-    const events = await EventModel.find({});
-    const items = [];
-    if (events.length > 0) {
-        events.forEach((event) => {
-            const eventDistance = calcDistanceLocation({
-                curentLong: long,
-                currentLat: lat,
-                addressLat: event.position.lat,
-                addressLong: event.position.long,
+    const events = await EventModel.find({})
+        .sort('createdAt')
+        .limit(limit ?? 5);
+
+    if (lat && long && distance) {
+        const items = [];
+        if (events.length > 0) {
+            events.forEach((event) => {
+                const eventDistance = calcDistanceLocation({
+                    curentLong: long,
+                    currentLat: lat,
+                    addressLat: event.position.lat,
+                    addressLong: event.position.long,
+                });
+
+                if (eventDistance < distance) {
+                    items.push(event);
+                }
             });
+        }
 
-            if (eventDistance < distance) {
-                items.push(event);
-            }
+        res.status(200).json({
+            message: 'get events ok',
+            data: items,
+        });
+    } else {
+        res.status(200).json({
+            message: 'get events ok',
+            data: events,
         });
     }
-
-    res.status(200).json({
-        message: 'get events ok',
-        data: items,
-    });
 });
 
 module.exports = { addNewEvent, getEvents };
