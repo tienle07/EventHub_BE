@@ -1,16 +1,15 @@
 /** @format */
 
-const bcryp = require("bcrypt");
-const asyncHandle = require("express-async-handler");
-const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
-const UserModel = require("../models/userModel");
-require("dotenv").config();
+const UserModel = require('../models/userModel');
+const bcryp = require('bcrypt');
+const asyncHandle = require('express-async-handler');
+const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+require('dotenv').config();
 
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587, // Use `true` for port 465, `false` for all other ports
-    secure: false,
+    host: 'smtp.gmail.com',
+    port: 587,
     auth: {
         user: process.env.USERNAME_EMAIL,
         pass: process.env.PASSWORD_EMAIL,
@@ -23,7 +22,7 @@ const getJsonWebToken = async (email, id) => {
         id,
     };
     const token = jwt.sign(payload, process.env.SECRET_KEY, {
-        expiresIn: "7d",
+        expiresIn: '7d',
     });
 
     return token;
@@ -33,7 +32,7 @@ const handleSendMail = async (val) => {
     try {
         await transporter.sendMail(val);
 
-        return "OK";
+        return 'OK';
     } catch (error) {
         return error;
     }
@@ -48,22 +47,22 @@ const verification = asyncHandle(async (req, res) => {
         const data = {
             from: `"Support EventHub Appplication" <${process.env.USERNAME_EMAIL}>`,
             to: email,
-            subject: "Verification email code",
-            text: "Your code to verification email",
+            subject: 'Verification email code',
+            text: 'Your code to verification email',
             html: `<h1>${verificationCode}</h1>`,
         };
 
         await handleSendMail(data);
 
         res.status(200).json({
-            message: "Send verification code successfully!!!",
+            message: 'Send verification code successfully!!!',
             data: {
                 code: verificationCode,
             },
         });
     } catch (error) {
         res.status(401);
-        throw new Error("Can not send email");
+        throw new Error('Can not send email');
     }
 });
 
@@ -74,7 +73,7 @@ const register = asyncHandle(async (req, res) => {
 
     if (existingUser) {
         res.status(400);
-        throw new Error("User has already exist!!!");
+        throw new Error('User has already exist!!!');
     }
 
     const salt = await bcryp.genSalt(10);
@@ -82,14 +81,14 @@ const register = asyncHandle(async (req, res) => {
 
     const newUser = new UserModel({
         email,
-        fullname: fullname ?? "",
+        fullname: fullname ?? '',
         password: hashedPassword,
     });
 
     await newUser.save();
 
     res.status(200).json({
-        message: "Register new user successfully",
+        message: 'Register new user successfully',
         data: {
             email: newUser.email,
             id: newUser.id,
@@ -105,22 +104,23 @@ const login = asyncHandle(async (req, res) => {
 
     if (!existingUser) {
         res.status(403);
-        throw new Error("User not found!!!");
+        throw new Error('User not found!!!');
     }
 
     const isMatchPassword = await bcryp.compare(password, existingUser.password);
 
     if (!isMatchPassword) {
         res.status(401);
-        throw new Error("Email or Password is not correct!");
+        throw new Error('Email or Password is not correct!');
     }
 
     res.status(200).json({
-        message: "Login successfully",
+        message: 'Login successfully',
         data: {
             id: existingUser.id,
             email: existingUser.email,
             accesstoken: await getJsonWebToken(email, existingUser.id),
+            fcmTokens: existingUser.fcmTokens ?? [],
         },
     });
 });
@@ -133,8 +133,8 @@ const forgotPassword = asyncHandle(async (req, res) => {
     const data = {
         from: `"New Password" <${process.env.USERNAME_EMAIL}>`,
         to: email,
-        subject: "Verification email code",
-        text: "Your code to verification email",
+        subject: 'Verification email code',
+        text: 'Your code to verification email',
         html: `<h1>${randomPassword}</h1>`,
     };
 
@@ -148,24 +148,24 @@ const forgotPassword = asyncHandle(async (req, res) => {
             isChangePassword: true,
         })
             .then(() => {
-                console.log("Done");
+                console.log('Done');
             })
             .catch((error) => console.log(error));
 
         await handleSendMail(data)
             .then(() => {
                 res.status(200).json({
-                    message: "Send email new password successfully!!!",
+                    message: 'Send email new password successfully!!!',
                     data: [],
                 });
             })
             .catch((error) => {
                 res.status(401);
-                throw new Error("Can not send email");
+                throw new Error('Can not send email');
             });
     } else {
         res.status(401);
-        throw new Error("User not found!!!");
+        throw new Error('User not found!!!');
     }
 });
 
