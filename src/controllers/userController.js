@@ -150,4 +150,21 @@ const getFollowers = asyncHandle(async (req, res) => {
     }
 });
 
-module.exports = { getAllUsers, getEventsFollowed, updateFcmToken, getProfile, getFollowers };
+const updateProfile = asyncHandle(async (req, res) => {
+    const body = req.body;
+    const { uid } = req.query;
+
+    if (uid && body) {
+        await UserModel.findByIdAndUpdate(uid, body);
+
+        res.status(200).json({
+            message: 'Update profile successfully!!',
+            data: [],
+        });
+    } else {
+        res.sendStatus(401);
+        throw new Error('Missing data');
+    }
+});
+
+module.exports = { getAllUsers, getEventsFollowed, updateFcmToken, getProfile, getFollowers, updateProfile };
