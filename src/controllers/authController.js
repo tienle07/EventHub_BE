@@ -120,7 +120,9 @@ const login = asyncHandle(async (req, res) => {
             id: existingUser.id,
             email: existingUser.email,
             accesstoken: await getJsonWebToken(email, existingUser.id),
-            fcmTokens: existingUser.fcmTokens,
+            fcmTokens: existingUser.fcmTokens ?? [],
+            photo: existingUser.photoUrl ?? '',
+            name: existingUser.name ?? '',
         },
     });
 });
