@@ -53,8 +53,9 @@ const getProfile = asyncHandle(async (req, res) => {
         console.log(profile);
 
         res.status(200).json({
-            message: 'fafa',
+            message: 'Get Profile Success',
             data: {
+                uid: profile._id,
                 createdAt: profile.createdAt,
                 updatedAt: profile.updatedAt,
                 name: profile.name ?? '',
@@ -63,6 +64,7 @@ const getProfile = asyncHandle(async (req, res) => {
                 email: profile.email ?? '',
                 photoUrl: profile.photoUrl ?? '',
                 bio: profile.bio ?? '',
+                following: profile.following ?? [],
             },
         });
     } else {
@@ -126,4 +128,26 @@ const handleSendNotification = async () => {
     });
 };
 
-module.exports = { getAllUsers, getEventsFollowed, updateFcmToken, getProfile };
+const getFollowers = asyncHandle(async (req, res) => {
+    const { uid } = req.query;
+
+    if (uid) {
+        const users = await UserModel.find({ following: { $all: uid } });
+
+        const ids = [];
+
+        if (users.length > 0) {
+            users.forEach((user) => ids.push(user._id));
+        }
+
+        res.status(200).json({
+            message: '',
+            data: ids,
+        });
+    } else {
+        throw new Error('can not find uid');
+        res.sendStatus(404);
+    }
+});
+
+module.exports = { getAllUsers, getEventsFollowed, updateFcmToken, getProfile, getFollowers };
