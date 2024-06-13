@@ -65,6 +65,7 @@ const getProfile = asyncHandle(async (req, res) => {
                 photoUrl: profile.photoUrl ?? '',
                 bio: profile.bio ?? '',
                 following: profile.following ?? [],
+                interests: profile.interests ?? [],
             },
         });
     } else {
@@ -167,4 +168,31 @@ const updateProfile = asyncHandle(async (req, res) => {
     }
 });
 
-module.exports = { getAllUsers, getEventsFollowed, updateFcmToken, getProfile, getFollowers, updateProfile };
+const updateInterests = asyncHandle(async (req, res) => {
+    const body = req.body;
+    const { uid } = req.query;
+
+    if (uid && body) {
+        await UserModel.findByIdAndUpdate(uid, {
+            interests: body,
+        });
+
+        res.status(200).json({
+            message: 'Update interested successfully',
+            data: body,
+        });
+    } else {
+        res.sendStatus(404);
+        throw new Error('Missing data');
+    }
+});
+
+module.exports = {
+    getAllUsers,
+    getEventsFollowed,
+    updateFcmToken,
+    getProfile,
+    getFollowers,
+    updateProfile,
+    updateInterests,
+};
