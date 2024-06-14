@@ -1,8 +1,9 @@
+/** @format */
+
 const asyncHandle = require('express-async-handler');
 const UserModel = require('../models/userModel');
-const { query } = require('express');
 const EventModel = require('../models/eventModel');
-const http = require('http');
+const { JWT } = require('google-auth-library');
 
 const nodemailer = require('nodemailer');
 require('dotenv').config();
@@ -38,8 +39,6 @@ const getAllUsers = asyncHandle(async (req, res) => {
         })
     );
 
-    // await handleSendNotification();
-
     res.status(200).json({
         message: 'Get users successfully!!!',
         data,
@@ -65,17 +64,14 @@ const getEventsFollowed = asyncHandle(async (req, res) => {
         throw new Error('Missing uid');
     }
 });
-
 const getProfile = asyncHandle(async (req, res) => {
     const { uid } = req.query;
 
     if (uid) {
         const profile = await UserModel.findOne({ _id: uid });
 
-        console.log(profile);
-
         res.status(200).json({
-            message: 'Get Profile Success',
+            message: 'fafa',
             data: {
                 uid: profile._id,
                 createdAt: profile.createdAt,
@@ -109,8 +105,28 @@ const updateFcmToken = asyncHandle(async (req, res) => {
     });
 });
 
+const getAccessToken = () => {
+    return new Promise(function (resolve, reject) {
+        const key = require('../evenhub-accesstoken-file.json');
+        const jwtClient = new JWT(
+            key.client_email,
+            null,
+            key.private_key,
+            ['https://www.googleapis.com/auth/cloud-platform'],
+            null
+        );
+        jwtClient.authorize(function (err, tokens) {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve(tokens.access_token);
+        });
+    });
+};
+
 const handleSendNotification = async ({
-    fcmTokens,
+    token,
     title,
     subtitle,
     body,
@@ -119,44 +135,32 @@ const handleSendNotification = async ({
     var request = require('request');
     var options = {
         method: 'POST',
-        url: 'https://fcm.googleapis.com/fcm/send',
+        url: 'https://fcm.googleapis.com/v1/projects/evenhub-f8c6e/messages:send',
         headers: {
             'Content-Type': 'application/json',
-            Authorization:
-                'key=AAAAnKIvrOQ:APA91bFtj72CcrMpUbhsHUl1-PBH0_y1S3siw0yLpPDba59f0y5tahPYOBJO-lkAOOhlTIvazrEPfiO66d262bkX3k4rd6UlxX3h3enhovVQkW24jApw9K3YwZ0EwAbnh5xWI-zpha1Q',
+            Authorization: `Bearer ${await getAccessToken()}`,
         },
         body: JSON.stringify({
-            registration_ids: fcmTokens,
-            notification: {
-                title,
-                subtitle,
-                body,
-                sound: 'default',
+            message: {
+                token,
+                notification: {
+                    title,
+                    body,
+                    subtitle,
+                },
                 data,
-            },
-            contentAvailable: 'true',
-            priority: 'high',
-            apns: {
-                payload: {
-                    aps: {
-                        contentAvailable: 'true',
-                    },
-                },
-                headers: {
-                    'apns-push-type': 'background',
-                    'apns-priority': '5',
-                    'apns-topic': '',
-                },
             },
         }),
     };
     request(options, function (error, response) {
         if (error) throw new Error(error);
-        console.log(response.body);
+        console.log(error);
+
+        console.log(response);
     });
 };
 
-const getFollowers = asyncHandle(async (req, res) => {
+const getFollowes = asyncHandle(async (req, res) => {
     const { uid } = req.query;
 
     if (uid) {
@@ -177,7 +181,6 @@ const getFollowers = asyncHandle(async (req, res) => {
         throw new Error('can not find uid');
     }
 });
-
 const getFollowings = asyncHandle(async (req, res) => {
     const { uid } = req.query;
 
@@ -271,16 +274,21 @@ const pushInviteNotifications = asyncHandle(async (req, res) => {
     ids.forEach(async (id) => {
         const user = await UserModel.findById(id);
 
-        if (user.fcmTokens) {
-            await handleSendNotification({
-                fcmTokens: user.fcmTokens,
-                title: 'EventHub',
-                subtitle: '',
-                body: 'You have been invited to participate in any event',
-                data: {
-                    eventId,
-                },
-            });
+        const fcmTokens = user.fcmTokens;
+
+        if (fcmTokens > 0) {
+            fcmTokens.forEach(
+                async (token) =>
+                    await handleSendNotification({
+                        fcmTokens: token,
+                        title: 'fasfasf',
+                        subtitle: '',
+                        body: 'Bạn đã được mời tham gia vào sự kiện nào đó',
+                        data: {
+                            eventId,
+                        },
+                    })
+            );
         } else {
             // Send mail
             const data = {
@@ -296,21 +304,37 @@ const pushInviteNotifications = asyncHandle(async (req, res) => {
     });
 
     res.status(200).json({
-        message: 'Push Notification Successfully!!!',
+        message: 'fafaf',
         data: [],
     });
 });
 
+const pushTestNoti = asyncHandle(async (req, res) => {
+    const { title, body, data } = req.body;
 
+    console.log(title);
+
+    // await handleSendNotification({
+    // 	data,
+    // 	title,
+    // 	body,
+    // });
+
+    res.status(200).json({
+        message: 'fafa',
+        data: [],
+    });
+});
 module.exports = {
     getAllUsers,
     getEventsFollowed,
     updateFcmToken,
     getProfile,
-    getFollowers,
+    getFollowes,
     updateProfile,
     updateInterests,
     toggleFollowing,
     getFollowings,
     pushInviteNotifications,
+    pushTestNoti,
 };
