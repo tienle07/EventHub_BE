@@ -160,7 +160,7 @@ const handleSendNotification = async ({
     });
 };
 
-const getFollowes = asyncHandle(async (req, res) => {
+const getFollowers = asyncHandle(async (req, res) => {
     const { uid } = req.query;
 
     if (uid) {
@@ -330,7 +330,7 @@ module.exports = {
     getEventsFollowed,
     updateFcmToken,
     getProfile,
-    getFollowes,
+    getFollowers,
     updateProfile,
     updateInterests,
     toggleFollowing,

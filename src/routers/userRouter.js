@@ -11,7 +11,9 @@ const {
     toggleFollowing,
     getAllUsers,
     getFollowings,
-    pushInviteNotifications
+    pushInviteNotifications,
+    pushTestNoti,
+
 } = require('../controllers/userController');
 
 const userRouter = Router();
