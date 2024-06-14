@@ -1,14 +1,15 @@
 
 const Router = require('express');
 const {
-    getAllUsers,
+
     getEventsFollowed,
     updateFcmToken,
     getProfile,
     getFollowers,
     updateProfile,
     updateInterests,
-    toggleFollowing
+    toggleFollowing,
+    getAllUsers
 } = require('../controllers/userController');
 
 const userRouter = Router();
