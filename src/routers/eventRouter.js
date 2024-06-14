@@ -8,6 +8,7 @@ const {
     getFollowers,
     createCategory,
     getCategories,
+    getEventById,
 } = require('../controllers/eventController');
 
 const eventRouter = Router();

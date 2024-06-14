@@ -10,7 +10,8 @@ const {
     updateInterests,
     toggleFollowing,
     getAllUsers,
-    getFollowings
+    getFollowings,
+    pushInviteNotifications
 } = require('../controllers/userController');
 
 const userRouter = Router();
