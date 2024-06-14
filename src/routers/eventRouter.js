@@ -18,5 +18,6 @@ eventRouter.post('/update-followers', updateFollowers);
 eventRouter.get('/followers', getFollowers);
 eventRouter.post('/create-category', createCategory);
 eventRouter.get('/get-categories', getCategories);
+eventRouter.get('/get-event', getEventById);
 
 module.exports = eventRouter;
