@@ -4,6 +4,28 @@ const { query } = require('express');
 const EventModel = require('../models/eventModel');
 const http = require('http');
 
+const nodemailer = require('nodemailer');
+require('dotenv').config();
+
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    auth: {
+        user: process.env.USERNAME_EMAIL,
+        pass: process.env.PASSWORD_EMAIL,
+    },
+});
+
+const handleSendMail = async (val) => {
+    try {
+        await transporter.sendMail(val);
+
+        return 'OK';
+    } catch (error) {
+        return error;
+    }
+};
+
 const getAllUsers = asyncHandle(async (req, res) => {
     const users = await UserModel.find({});
 
@@ -87,7 +109,13 @@ const updateFcmToken = asyncHandle(async (req, res) => {
     });
 });
 
-const handleSendNotification = async () => {
+const handleSendNotification = async ({
+    fcmTokens,
+    title,
+    subtitle,
+    body,
+    data,
+}) => {
     var request = require('request');
     var options = {
         method: 'POST',
@@ -98,14 +126,13 @@ const handleSendNotification = async () => {
                 'key=AAAAnKIvrOQ:APA91bFtj72CcrMpUbhsHUl1-PBH0_y1S3siw0yLpPDba59f0y5tahPYOBJO-lkAOOhlTIvazrEPfiO66d262bkX3k4rd6UlxX3h3enhovVQkW24jApw9K3YwZ0EwAbnh5xWI-zpha1Q',
         },
         body: JSON.stringify({
-            registration_ids: [
-                'fWyuCvaXRa6k7n_oNzMwwC:APA91bFrPpAoBbnnrg3d5HyGEDFk7BjJd4r5lccOqLE0Fger6AaSfzelDPL2NzcWH7gmKqL9-BdL0rwpBfId_QqQeKeEV5kZTVQUrJJQqMU9ql1Ho5gZhZnWyCr8gzEF_X-vNXIz2wfK',
-            ],
+            registration_ids: fcmTokens,
             notification: {
-                title: 'title',
-                subtitle: 'sub title',
-                body: 'content of message',
+                title,
+                subtitle,
+                body,
                 sound: 'default',
+                data,
             },
             contentAvailable: 'true',
             priority: 'high',
@@ -238,6 +265,43 @@ const toggleFollowing = asyncHandle(async (req, res) => {
     }
 });
 
+const pushInviteNotifications = asyncHandle(async (req, res) => {
+    const { ids, eventId } = req.body;
+
+    ids.forEach(async (id) => {
+        const user = await UserModel.findById(id);
+
+        if (user.fcmTokens) {
+            await handleSendNotification({
+                fcmTokens: user.fcmTokens,
+                title: 'EventHub',
+                subtitle: '',
+                body: 'You have been invited to participate in any event',
+                data: {
+                    eventId,
+                },
+            });
+        } else {
+            // Send mail
+            const data = {
+                from: `"Support EventHub Appplication" <${process.env.USERNAME_EMAIL}>`,
+                to: email,
+                subject: 'Verification email code',
+                text: 'Your code to verification email',
+                html: `<h1>${eventId}</h1>`,
+            };
+
+            await handleSendMail(data);
+        }
+    });
+
+    res.status(200).json({
+        message: 'Push Notification Successfully!!!',
+        data: [],
+    });
+});
+
+
 module.exports = {
     getAllUsers,
     getEventsFollowed,
@@ -247,5 +311,6 @@ module.exports = {
     updateProfile,
     updateInterests,
     toggleFollowing,
-    getFollowings
+    getFollowings,
+    pushInviteNotifications,
 };
