@@ -46,11 +46,11 @@ const addNewEvent = asyncHandle(async (req, res) => {
 const getEventById = asyncHandle(async (req, res) => {
     const { id } = req.query;
 
-    console.log(id);
+    const item = await EventModel.findById(id);
 
     res.status(200).json({
         message: 'Get EventById successfully!!!',
-        data: [],
+        data: item ? item : [],
     });
 });
 
@@ -108,6 +108,30 @@ const searchEvents = asyncHandle(async (req, res) => {
         data: items,
     });
 });
+
+const updateEvent = asyncHandle(async (req, res) => {
+    const { data } = req.body;
+    const { id } = req.query;
+
+    const item = await EventModel.findByIdAndUpdate(id, data);
+
+    res.status(200).json({
+        message: 'Update event successfully!!!',
+        data: [],
+    });
+});
+
+const getEventsByCategoryId = asyncHandle(async (req, res) => {
+    const { id } = req.query;
+
+    const items = await EventModel.find({ categories: { $all: id } });
+
+    res.status(200).json({
+        message: 'get Events by categories successfully!!!',
+        data: items,
+    });
+});
+
 
 const updateFollowers = asyncHandle(async (req, res) => {
     const body = req.body;
@@ -167,4 +191,6 @@ module.exports = {
     getCategories,
     getEventById,
     searchEvents,
+    updateEvent,
+    getEventsByCategoryId,
 };
