@@ -51,8 +51,14 @@ const toRoad = (val) => (val * Math.PI) / 180;
 const addNewEvent = asyncHandle(async (req, res) => {
     const body = req.body;
 
-    if (body) {
-        const newEvent = new EventModel(body);
+    console.log(body);
+    const data = { ...body };
+    data.price = parseFloat(body.price);
+
+    console.log(data);
+
+    if (data) {
+        const newEvent = new EventModel(data);
 
         await newEvent.save();
 
@@ -65,6 +71,7 @@ const addNewEvent = asyncHandle(async (req, res) => {
         throw new Error('Event data not found!!!');
     }
 });
+
 
 const getEventById = asyncHandle(async (req, res) => {
     const { id } = req.query;
@@ -133,14 +140,16 @@ const searchEvents = asyncHandle(async (req, res) => {
 });
 
 const updateEvent = asyncHandle(async (req, res) => {
-    const { data } = req.body;
+    const data = req.body;
     const { id } = req.query;
+
+    console.log(data, id);
 
     const item = await EventModel.findByIdAndUpdate(id, data);
 
     res.status(200).json({
         message: 'Update event successfully!!!',
-        data: [],
+        data: item,
     });
 });
 
@@ -227,7 +236,7 @@ const handleUpdatePaymentSuccess = asyncHandle(async (req, res) => {
 
     const data = {
         from: `"Support EventHub Application" <${process.env.USERNAME_EMAIL}>`,
-        to: 'bsdaoquang@gmail.com',
+        to: 'letiendev07@gmail.com',
         subject: 'Verification email code',
         text: 'Your code to verification email',
         html: `<h1>Your ticket</h1>`,
