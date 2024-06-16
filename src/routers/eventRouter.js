@@ -12,6 +12,8 @@ const {
     searchEvents,
     updateEvent,
     getEventsByCategoryId,
+    handleAddNewBillDetail,
+    handleUpdatePaymentSuccess,
 } = require('../controllers/eventController');
 
 const eventRouter = Router();
@@ -26,5 +28,7 @@ eventRouter.get('/get-event', getEventById);
 eventRouter.get('/search-events', searchEvents);
 eventRouter.put('/update-event', updateEvent);
 eventRouter.get('/get-events-by-categoryid', getEventsByCategoryId);
+eventRouter.post('/buy-ticket', handleAddNewBillDetail);
+eventRouter.get('/update-payment-success', handleUpdatePaymentSuccess);
 
 module.exports = eventRouter;

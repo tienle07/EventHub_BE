@@ -71,7 +71,7 @@ const getProfile = asyncHandle(async (req, res) => {
         const profile = await UserModel.findOne({ _id: uid });
 
         res.status(200).json({
-            message: 'fafa',
+            message: 'Get Profile Successfully',
             data: {
                 uid: profile._id,
                 createdAt: profile.createdAt,
