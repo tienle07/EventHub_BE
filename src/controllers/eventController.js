@@ -155,21 +155,20 @@ const getEvents = asyncHandle(async (req, res) => {
     }
 });
 
+// const searchEvents = asyncHandle(async (req, res) => {
+//     const { title } = req.query;
 
-const searchEvents = asyncHandle(async (req, res) => {
-    const { title } = req.query;
+//     const events = await EventModel.find({});
 
-    const events = await EventModel.find({});
+//     const items = events.filter((element) =>
+//         element.title.toLowerCase().includes(title.toLocaleLowerCase())
+//     );
 
-    const items = events.filter((element) =>
-        element.title.toLowerCase().includes(title.toLocaleLowerCase())
-    );
-
-    res.status(200).json({
-        message: 'get events ok',
-        data: items,
-    });
-});
+//     res.status(200).json({
+//         message: 'get events ok',
+//         data: items,
+//     });
+// });
 
 const updateEvent = asyncHandle(async (req, res) => {
     const data = req.body;
@@ -316,7 +315,7 @@ module.exports = {
     updateCategory,
     getCategoryDetail,
     getEventById,
-    searchEvents,
+    // searchEvents,
     updateEvent,
     getEventsByCategoryId,
     handleAddNewBillDetail,

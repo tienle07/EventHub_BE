@@ -274,40 +274,48 @@ const pushInviteNotifications = asyncHandle(async (req, res) => {
     ids.forEach(async (id) => {
         const user = await UserModel.findById(id);
 
-        const fcmTokens = user.fcmTokens;
+        if (user) {
 
-        if (fcmTokens > 0) {
-            fcmTokens.forEach(
-                async (token) =>
-                    await handleSendNotification({
-                        fcmTokens: token,
-                        title: 'fasfasf',
-                        subtitle: '',
-                        body: 'Bạn đã được mời tham gia vào sự kiện nào đó',
-                        data: {
-                            eventId,
-                        },
-                    })
-            );
+            const fcmTokens = user.fcmTokens;
+
+            if (fcmTokens > 0) {
+                fcmTokens.forEach(
+                    async (token) =>
+                        await handleSendNotification({
+                            fcmTokens: token,
+                            title: 'EventHub',
+                            subtitle: '',
+                            body: 'Bạn đã được mời tham gia vào sự kiện nào đó',
+                            data: {
+                                eventId,
+                            },
+                        })
+                );
+            } else {
+                // Send mail
+                const data = {
+                    from: `"Support EventHub Appplication" <${process.env.USERNAME_EMAIL}>`,
+                    to: user.email,
+                    subject: 'Verification email code',
+                    text: 'Your code to verification email',
+                    html: `<h1>${eventId}</h1>`,
+                };
+                await handleSendMail(data);
+            }
         } else {
-            // Send mail
-            const data = {
-                from: `"Support EventHub Appplication" <${process.env.USERNAME_EMAIL}>`,
-                to: email,
-                subject: 'Verification email code',
-                text: 'Your code to verification email',
-                html: `<h1>${eventId}</h1>`,
-            };
-
-            await handleSendMail(data);
+            console.log('User not found')
+            res.sendStatus(401)
+            throw new Error('User not found')
         }
+
     });
 
     res.status(200).json({
-        message: 'fafaf',
+        message: 'Send notification successfully',
         data: [],
     });
 });
+
 
 const pushTestNoti = asyncHandle(async (req, res) => {
     const { title, body, data } = req.body;
