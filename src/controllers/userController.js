@@ -71,7 +71,7 @@ const getProfile = asyncHandle(async (req, res) => {
         const profile = await UserModel.findOne({ _id: uid });
 
         res.status(200).json({
-            message: 'Get Profile Successfully',
+            message: 'fafa',
             data: {
                 uid: profile._id,
                 createdAt: profile.createdAt,
@@ -94,6 +94,7 @@ const getProfile = asyncHandle(async (req, res) => {
 
 const updateFcmToken = asyncHandle(async (req, res) => {
     const { uid, fcmTokens } = req.body;
+
 
     await UserModel.findByIdAndUpdate(uid, {
         fcmTokens,
@@ -125,38 +126,39 @@ const getAccessToken = () => {
     });
 };
 
+
+
 const handleSendNotification = async ({
-    token,
+    fcmTokens,
     title,
-    subtitle,
     body,
     data,
 }) => {
+
     var request = require('request');
     var options = {
         method: 'POST',
-        url: 'https://fcm.googleapis.com/v1/projects/evenhub-f8c6e/messages:send',
+        url: 'https://fcm.googleapis.com/v1/projects/eventhub-4352b/messages:send',
         headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${await getAccessToken()}`,
         },
         body: JSON.stringify({
             message: {
-                token,
+                token: fcmTokens,
                 notification: {
                     title,
                     body,
-                    subtitle,
+
                 },
                 data,
             },
         }),
     };
     request(options, function (error, response) {
+        console.log(response)
         if (error) throw new Error(error);
         console.log(error);
-
-        console.log(response);
     });
 };
 
@@ -271,6 +273,7 @@ const toggleFollowing = asyncHandle(async (req, res) => {
 const pushInviteNotifications = asyncHandle(async (req, res) => {
     const { ids, eventId } = req.body;
 
+
     ids.forEach(async (id) => {
         const user = await UserModel.findById(id);
 
@@ -278,23 +281,25 @@ const pushInviteNotifications = asyncHandle(async (req, res) => {
 
             const fcmTokens = user.fcmTokens;
 
-            if (fcmTokens > 0) {
+            if (fcmTokens.length > 0) {
                 fcmTokens.forEach(
-                    async (token) =>
+                    async (token) => {
                         await handleSendNotification({
                             fcmTokens: token,
-                            title: 'EventHub',
+                            title: 'Eventhub Application',
                             subtitle: '',
                             body: 'Bạn đã được mời tham gia vào sự kiện nào đó',
                             data: {
                                 eventId,
                             },
                         })
+
+                    }
                 );
             } else {
                 // Send mail
                 const data = {
-                    from: `"Support EventHub Appplication" <${process.env.USERNAME_EMAIL}>`,
+                    from: `"Support EventHub Application" <${process.env.USERNAME_EMAIL}>`,
                     to: user.email,
                     subject: 'Verification email code',
                     text: 'Your code to verification email',
@@ -311,11 +316,10 @@ const pushInviteNotifications = asyncHandle(async (req, res) => {
     });
 
     res.status(200).json({
-        message: 'Send notification successfully',
+        message: 'fafaf',
         data: [],
     });
 });
-
 
 const pushTestNoti = asyncHandle(async (req, res) => {
     const { title, body, data } = req.body;
